@@ -12,7 +12,6 @@ class DBClient {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-
     // Display any errors in the console
     this.client.on('error', (err) => {
       console.error(`MongoDB Error: ${err}`);
