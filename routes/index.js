@@ -24,4 +24,6 @@ router.put('/files/:id/publish', FilesController.putUnublish);
 
 router.get('/files/:id/data', FilesController.getFile);
 
+router.post('/files');
+
 module.exports = router;
