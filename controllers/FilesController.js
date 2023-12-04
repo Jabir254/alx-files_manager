@@ -156,6 +156,63 @@ class FilesController {
       return res.status(500).json({ error: 'Internal Server Error' });
     }
   }
+
+  static async putPublish(res, req) {
+    const { token } = req.headers;
+    const { id } = req.params;
+
+    try {
+      const userId = await redisClient.get(`auth_${token}`);
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const filter = { _id: ObjectId(id), userId: ObjectId(userId) };
+      const update = { $set: { isPublic: true } };
+      const option = { returnDocument: 'after' };
+
+      const updatefile = await dbClient.db().collection('files').findOneAndUpdate(filter, update, option);
+
+      if (!updatefile.value) {
+        return res.status(404).json({ error: 'Not Found' });
+      }
+      return res.status(200).json(updatefile.value);
+    } catch (error) {
+      console.error(`Error publishing file: ${error}`);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
+
+  static async putUnpublish(req, res) {
+    const { token } = req.headers;
+    const { id } = req.params;
+
+    try {
+      // Retrieve user based on the token
+      const userId = await redisClient.get(`auth_${token}`);
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      // Retrieve and update file document based on user ID and file ID
+      const filter = { _id: ObjectId(id), userId: ObjectId(userId) };
+      const update = { $set: { isPublic: false } };
+      const options = { returnDocument: 'after' };
+
+      const updatedFile = await dbClient
+        .db()
+        .collection('files')
+        .findOneAndUpdate(filter, update, options);
+
+      if (!updatedFile.value) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+
+      return res.status(200).json(updatedFile.value);
+    } catch (error) {
+      console.error(`Error unpublishing file: ${error}`);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
 }
 
 module.exports = FilesController;
